@@ -287,7 +287,7 @@ def doBib(args):
 
 def main():
     parser = argparse.ArgumentParser(description='Get papers from the ADS')
-    parser.add_argument('--no-interactive',
+    parser.add_argument('--no-interactive', help='Deactivate interaction',
                         dest='interactive', action='store_false')
     subparsers = parser.add_subparsers()
     query_parser = subparsers.add_parser('query', description='Query the ADS')
@@ -305,9 +305,12 @@ def main():
     bib_parser.set_defaults(func=doBib)
 
     args = parser.parse_args()
-    results = args.func(args)
 
-    return results
+    try:
+        return args.func(args)
+    except AttributeError: # func not in namespace
+        parser.print_help()
+        return
 
 if __name__ == '__main__':
     try:
