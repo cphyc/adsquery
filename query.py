@@ -188,18 +188,21 @@ def doQuery(args):
         print('Selected:')
         printResults(papers)
 
-        download = getInput('Download [d], bibtex[b], pass[*]? ', lambda e: e)
+        action = getInput(
+            'Download [d], bibtex[b], quit[q]? ', lambda e: e.lower())
 
-        if download.lower() == 'd':
+        if action == 'd':
             print('Downloading…')
             for paper in papers:
                 print('Downloading "{}"'.format(paper.title[0]))
                 downloadPaper(paper)
 
-        elif download.lower() == 'b':
+        elif action == 'b':
             print('Bibentries…')
             bibtex = [p.bibtex for p in tqdm(papers)]
             print(''.join(bibtex))
+        elif action == 'q':
+            pass
         else:
             pass
         return papers
