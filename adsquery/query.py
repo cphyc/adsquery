@@ -41,11 +41,13 @@ class BuildQuery:
 
 
 def createQueryParser(parser):
-    parser.add_argument('--token', type=str,
-                        help='Your ADS token. Leave to null to use to value found in ~/.ads/dev_key or from the environment variable ADS_DEV_KEY.',
-                        default=None)
+    parser.description = """Example:
 
+    adsquery query --first-author Einstein relativity
+    adsquery query "Gravitational wave" --year 2015
+    """
     query_param = parser.add_argument_group('Query parameters')
+
     query_param.add_argument(metavar='query', dest='q', type=str,
                              help='The search query. Can be either fielded (field:value) or unfielded (value).')
     query_param.add_argument('--rows', type=int, default=10,
@@ -289,6 +291,11 @@ def main():
     parser = argparse.ArgumentParser(description='Get papers from the ADS')
     parser.add_argument('--no-interactive', help='Deactivate interaction',
                         dest='interactive', action='store_false')
+    parser.add_argument('--token', type=str,
+                        help='Your ADS token. Leave empty to use the value from ~/.ads/dev_key or from the environment variable ADS_DEV_KEY.',
+                        default=None)
+
+
     subparsers = parser.add_subparsers()
     query_parser = subparsers.add_parser('query', description='Query the ADS')
     createQueryParser(query_parser)
