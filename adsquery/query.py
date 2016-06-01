@@ -57,7 +57,7 @@ def createQueryParser(parser):
     """
     query_param = parser.add_argument_group('Query parameters')
 
-    query_param.add_argument(metavar='query', dest='q', type=str,
+    query_param.add_argument(metavar='query', dest='q', type=str, nargs='*',
                              help='The search query. Can be either fielded (field:value) or unfielded (value).')
     query_param.add_argument('--rows', type=int, default=10,
                              help="number of results to return.")
@@ -321,6 +321,8 @@ def main():
     bib_parser.set_defaults(func=doBib)
 
     args = parser.parse_args()
+    if 'q' in vars(args):
+        args.q = ' '.join(args.q)
 
     try:
         return args.func(args)
