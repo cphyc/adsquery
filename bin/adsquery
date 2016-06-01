@@ -1,3 +1,5 @@
+#/usr/bin/python
+
 import adsquery
 
 if __name__ == '__main__':
