@@ -1,3 +1,12 @@
+# -*- coding: utf-8 -*-
+# Python2 compat
+from __future__ import unicode_literals, print_function, division
+try:
+    input = raw_input
+except NameError: # python3
+    pass
+
+# Imports
 import ads
 import argparse
 # from gooey import Gooey
