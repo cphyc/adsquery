@@ -202,20 +202,17 @@ def doQuery(args):
         action = getInput(
             'Download [d], bibtex[b], quit[q]? ', lambda e: e.lower())
 
-        if action == 'd':
+        if 'd' in action:
             print('Downloading…')
             for paper in papers:
                 print('Downloading "{}"'.format(paper.title[0]))
                 downloadPaper(paper)
 
-        elif action == 'b':
+        if 'b' in action:
             print('Bibentries…')
             bibtex = [p.bibtex for p in tqdm(papers)]
             print(''.join(bibtex))
-        elif action == 'q':
-            pass
-        else:
-            pass
+
         return papers
     else:
         return res_ar_array
