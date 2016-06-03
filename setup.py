@@ -5,7 +5,7 @@ def readme():
         return f.read()
 
 setup(name='adsquery',
-      version='0.0.5',
+      version='0.0.6',
       description='Query the ADS using python',
       long_description=readme(),
       url='https://github.com/cphyc/adsquery',
