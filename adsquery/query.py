@@ -195,7 +195,10 @@ def doQuery(args, **kwargs):
     res_as_array = []
 
     # loop over results
-    res_as_array = [res for res in results]
+    try: # sometimes, the ads script gets an IndexError, hide this
+        res_as_array = [res for res in results]
+    except IndexError:
+        res_ar_array = []
     printResults(res_as_array)
 
     if len(res_as_array) == 0:
