@@ -39,7 +39,10 @@ class BuildQuery:
             self.query[key] = val
 
     def execute(self):
-        return ads.SearchQuery(**self.query)
+        try:
+            return ads.SearchQuery(**self.query)
+        except AssertionError:
+            return []
 
 
 def createQueryParser(parser):
