@@ -3,4 +3,7 @@
 import adsquery
 
 if __name__ == '__main__':
-    adsquery.main()
+    try:
+        adsquery.main()
+    except KeyboardInterrupt:
+        pass
