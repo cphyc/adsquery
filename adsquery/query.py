@@ -157,6 +157,8 @@ def createBibParser(parser):
 
 def printResults(results):
     for i, res in enumerate(results):
+
+        # Format author
         if res.author is not None and len(res.author) > 3:
             authors = res.author[0] + ' et al. ({} more)'.format(len(res.author[1:]))
         elif res.author is None:
@@ -164,14 +166,21 @@ def printResults(results):
         else:
             authors = ', '.join(res.author)
 
-        print('{c.HEADER}[{i}]: {c.OKGREEN}{year} — {c.OKBLUE}{author}{c.ENDC}, {title}'.format(
-            i=i, year=res.year, title=res.title[0], author=authors, c=bcolors))
+        # Format journal
+        pub = res.pub
+        if pub in journalAbbrevs:
+            pub = journalAbbrevs[pub]
+
+        if pub is None:
+            pub = '?'
+
+        # Format year journal
+        print('{c.HEADER}[{i}]: {c.OKGREEN}{year}, {pub} — {c.OKBLUE}{author}{c.ENDC}, {title}'.format(
+            i=i, year=res.year, title=res.title[0], author=authors, c=bcolors, pub=pub))
 
 
 def doQuery(args, **kwargs):
-    print('In do query')
     query = BuildQuery()
-
 
     for key in vars(args):
         if key not in ['interactive', 'func']:
