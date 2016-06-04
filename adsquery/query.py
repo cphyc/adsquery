@@ -260,7 +260,10 @@ def downloadPaper(paper):
         r = requests.get(url, stream=True)
 
         with open(fname, 'wb') as f:
-            total_length = int(r.headers.get('content-length'))
+            try:
+                total_length = int(r.headers.get('content-length'))
+            except:
+                total_length = -1
             for chunk in tqdm(r.iter_content(chunk_size=1024), total=(total_length / 1024)):
                 if chunk:
                     f.write(chunk)
@@ -347,6 +350,7 @@ def main():
     args = parser.parse_args()
     if 'q' in vars(args):
         args.q = ' '.join(args.q)
+
 
     try:
         return args.func(args)
