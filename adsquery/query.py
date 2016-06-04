@@ -205,7 +205,13 @@ def doQuery(args, **kwargs):
 
     if args.interactive or ('interactive' in kwargs and kwargs['interactive']):
         print('')
-        inp = input('Comma separated articles to download [e.g. 1-3, 4] or [m] for more: ')
+        inp = input('Comma separated articles to download [e.g. 1-3, 4], [m] for more [q] to quit or add more parameters to request [e.g. year:2016]: ')
+
+        # Match quit request
+        if inp == 'q':
+            return
+
+        # Match requests for more articles
         # match any string like "5m", "10 more", …
         grp = re.match('(\d+) ?[mM](ore)?', inp)
         if grp is not None:
@@ -217,32 +223,44 @@ def doQuery(args, **kwargs):
             else:
                 kwargs['rows'] = 10 + nmore
 
+            print('Loading {} more!'.format(nmore))
             doQuery(args, **kwargs)
             return
 
+
+        # Match selection
         mask = parseAsList(inp)
-        papers = [r for i, r in enumerate(res_as_array) if i in mask]
-        print('Selected:')
-        printResults(papers)
+        if len(mask) > 0:
+            papers = [r for i, r in enumerate(res_as_array) if i in mask]
+            print('Selected:')
+            printResults(papers)
 
-        action = getInput(
-            'Download [d], bibtex[b], quit[q]? ', lambda e: e.lower())
+            action = getInput(
+                'Download [d], bibtex[b], quit[q]? ', lambda e: e.lower())
 
 
-        # Download selected articles
-        if 'd' in action:
-            print('Downloading…')
-            for paper in papers:
-                print('Downloading "{}"'.format(paper.title[0]))
-                downloadPaper(paper)
+            # Download selected articles
+            if 'd' in action:
+                for paper in papers:
+                    print('Downloading "{}"'.format(paper.title[0]))
+                    downloadPaper(paper)
 
-        # Get bibtex reference
-        if 'b' in action:
-            print('Bibentries…')
-            bibtex = [p.bibtex for p in tqdm(papers)]
-            print(''.join(bibtex))
+            # Get bibtex reference
+            if 'b' in action:
+                print('Downloading bibtex entries')
+                bibtex = [p.bibtex for p in tqdm(papers)]
+                print(''.join(bibtex))
 
-        return papers
+            return papers
+        else: # match more request
+            if args.q is not None:
+                args.q = args.q + ' ' + inp
+            elif 'q' in kwargs:
+                kwargs['q'] += ' ' + inp
+            else:
+                kwargs['q'] = inp
+            doQuery(args, **kwargs)
+            return
     else:
         return res_ar_array
 
@@ -304,8 +322,7 @@ def parseAsList(string):
     for inp in dl_input:
         match = regexp.match(inp)
         if match is None:
-            print('Invalid predicate `{}`'.format(inp))
-            continue
+            return []
 
         beg, end = match.group(1, 3)
         if end is None:
