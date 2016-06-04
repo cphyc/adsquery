@@ -7,7 +7,7 @@ except NameError: # python3
     pass
 
 # Local imports
-from definitions import journalAbbrevs, bcolors
+from .definitions import bcolors, journalAbbrevs
 
 # Imports
 import ads
