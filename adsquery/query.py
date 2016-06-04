@@ -175,11 +175,17 @@ def printResults(results):
             i=i, year=res.year, title=res.title[0], author=authors, c=bcolors))
 
 
-def doQuery(args):
+def doQuery(args, **kwargs):
+    print('In do query')
     query = BuildQuery()
+
+
     for key in vars(args):
         if key not in ['interactive', 'func']:
             query.setKey(key, vars(args)[key])
+    for key in kwargs:
+        if key not in ['interactive', 'func']:
+            query.setKey(key, kwargs[key])
 
     # get results
     results = query.execute()
@@ -194,9 +200,25 @@ def doQuery(args):
         print('No results')
         return
 
-    if args.interactive:
+
+    if args.interactive or ('interactive' in kwargs and kwargs['interactive']):
         print('')
-        mask = getList('Comma separated articles to download [e.g. 1-3, 4 ]: ')
+        inp = input('Comma separated articles to download [e.g. 1-3, 4] or [m] for more: ')
+        # match any string like "5m", "10 more", …
+        grp = re.match('(\d+) ?[mM](ore)?', inp)
+        if grp is not None:
+            nmore = int(grp.group(1))
+
+            # load more
+            if 'rows' in kwargs:
+                kwargs['rows'] += nmore
+            else:
+                kwargs['rows'] = 10 + nmore
+
+            doQuery(args, **kwargs)
+            return
+
+        mask = parseAsList(inp)
         papers = [r for i, r in enumerate(res_as_array) if i in mask]
         print('Selected:')
         printResults(papers)
@@ -204,12 +226,15 @@ def doQuery(args):
         action = getInput(
             'Download [d], bibtex[b], quit[q]? ', lambda e: e.lower())
 
+
+        # Download selected articles
         if 'd' in action:
             print('Downloading…')
             for paper in papers:
                 print('Downloading "{}"'.format(paper.title[0]))
                 downloadPaper(paper)
 
+        # Get bibtex reference
         if 'b' in action:
             print('Bibentries…')
             bibtex = [p.bibtex for p in tqdm(papers)]
@@ -255,17 +280,17 @@ def getInput(help_string, parse_fun):
     return ret_parsed
 
 
-def getList(help_string):
-    '''Prompt for user input and parse the result as a list.
+def parseAsList(string):
+    '''Parse the input as a list
 
-    :param help_string
-    the string to display to the user
+    :param string
+    the string to parse
 
     :return
     a list containing the input from the user
     '''
     # prompt for article to download
-    dl_input = input(help_string)
+    dl_input = string
 
     # split around commas (with blanks)
     dl_input = re.split('\s?,\s?', dl_input)
