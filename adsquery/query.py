@@ -310,7 +310,12 @@ def downloadPaper(paper):
     fname = '{paper.bibcode}_{author}.pdf'.format(
         paper=paper,
         author=paper.first_author.split(',')[0])
-    fname = os.path.join('/home/ccc/ADS', fname)
+    filesDir = os.path.join(os.path.expanduser('~'), 'ADS')
+    # create the directory of not existing
+    if not os.path.isdir(filesDir):
+        os.path.mkdir(filesDir)
+
+    fname = os.path.join(filesDir, fname)
 
     if not os.path.isfile(fname):
         r = requests.get(url, stream=True)
