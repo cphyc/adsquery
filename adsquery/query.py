@@ -69,7 +69,7 @@ def createQueryParser(parser):
                              help=("Filter query: filter your results using"
                                    " in a particular field:value condition."
                                    " This parameter is repeatable."))
-    query_param.add_argument('--sort', type=str, nargs=2, help='Foo')
+    query_param.add_argument('--sort', type=str, help='Sort using this field')
 
     fields = parser.add_argument_group('Fields')
     fields.add_argument('--abstract',
@@ -213,12 +213,16 @@ def printResults(results):
 def doQuery(args, **kwargs):
     query = BuildQuery()
 
+    query.setKey('sort', 'citation_count')
     for key in vars(args):
         if key not in ['interactive', 'func']:
             query.setKey(key, vars(args)[key])
     for key in kwargs:
         if key not in ['interactive', 'func']:
             query.setKey(key, kwargs[key])
+
+    fl = ['abstract', 'author', 'year', 'pub', 'title', 'body', 'bibentry']
+    query.setKey('fl', fl)
 
     # get results
     results = query.execute()
@@ -384,7 +388,7 @@ def doBib(args):
     pass
 
 
-def main():
+def interactive():
     parser = argparse.ArgumentParser(description='Get papers from the ADS')
     parser.add_argument('--no-interactive', help='Deactivate interaction',
                         dest='interactive', action='store_false')
@@ -419,9 +423,14 @@ def main():
         parser.print_help()
         return
 
-if __name__ == '__main__':
+
+def main():
+    '''A simple wrapper that's catching C-c'''
     try:
-        results = main()
+        interactive()
     except KeyboardInterrupt:
-        print('Interrupted via keyboard')
         pass
+
+
+if __name__ == '__main__':
+    main()
