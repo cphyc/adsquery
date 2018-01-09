@@ -19,4 +19,9 @@ setup(name='adsquery',
           'tqdm'
       ],
       zip_safe=False,
-      scripts=['bin/adsquery'])
+      entry_points={
+          'console_scripts': [
+              'adsquery = adsquery.query:main'
+          ]
+      }
+)
