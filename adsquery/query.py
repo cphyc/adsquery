@@ -221,7 +221,7 @@ def doQuery(args, **kwargs):
         if key not in ['interactive', 'func']:
             query.setKey(key, kwargs[key])
 
-    fl = ['abstract', 'author', 'year', 'pub', 'title', 'body', 'bibentry']
+    fl = ['abstract', 'author', 'year', 'pub', 'title', 'bibcode']
     query.setKey('fl', fl)
 
     # get results
@@ -285,11 +285,24 @@ def doQuery(args, **kwargs):
 
             # Get bibtex reference
             if 'b' in action:
+                try:
+                    import pyperclip
+                    clip = True
+                except ModuleNotFoundError:
+                    clip = False
+
                 print('Downloading bibtex entries')
-                bibtex = [p.bibtex for p in tqdm(papers)]
-                print(''.join(bibtex))
+                # Get the list of bibcodes
+                bibcodes = [p.bibcode for p in papers]
+                eq = ads.ExportQuery(bibcodes)
+                bib = eq.execute()
+                print(bib)
+                if clip:
+                    print('Copied to clipboard!')
+                    pyperclip.copy(bib)
 
             return papers
+
         else:  # match more request
             if args.q is not None:
                 args.q = args.q + ' ' + inp
