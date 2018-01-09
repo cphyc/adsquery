@@ -56,7 +56,7 @@ def createQueryParser(parser):
     query_param.add_argument(metavar='query', dest='q', type=str, nargs='*',
                              help=('The search query. Can be either fielded '
                                    '(field:value) or unfielded (value).'))
-    query_param.add_argument('--rows', type=int, default=10,
+    query_param.add_argument('--rows', type=int, default=50,
                              help="number of results to return.")
     query_param.add_argument('--start', type=int, default=1,
                              help=("starting point for returned results (for"
@@ -257,7 +257,7 @@ def doQuery(args, **kwargs):
             if 'rows' in kwargs:
                 kwargs['rows'] += nmore
             else:
-                kwargs['rows'] = 10 + nmore
+                kwargs['rows'] = 50 + nmore
 
             print('Loading {} more!'.format(nmore))
             doQuery(args, **kwargs)
