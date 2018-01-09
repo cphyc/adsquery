@@ -55,20 +55,11 @@ Download [d], bibtex[b], quit[q]? d
 ```
 The file is now located at `~/ADS/1915SPAW.......831E_Einstein.pdf`. If you wanted the bibtex entry, you should replace the last `d` by `b`.
 
-
-## Getting
-TODO
-
-## Bib
-TODO
-
 # Features
 - [x] query the ADS
 - [x] interactively prompt the user
   - [x] show bibtex reference
   - [x] download pdf file
-- [ ] oneliner to show the bibtex / download the pdf
-- [ ] tested
 
 ## Bugs and suggestions
 Feel free to fill in an issue if you have any problem or suggestion
