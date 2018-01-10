@@ -1,11 +1,13 @@
 from setuptools import setup
 
+
 def readme():
     with open('README.md') as f:
         return f.read()
 
+
 setup(name='adsquery',
-      version='0.0.9',
+      version='0.1.0',
       description='Query the ADS using python',
       long_description=readme(),
       url='https://github.com/cphyc/adsquery',
@@ -18,10 +20,13 @@ setup(name='adsquery',
           'ads',
           'tqdm'
       ],
+      extras_require={
+          'clipboard': ['pyperclip']
+      },
       zip_safe=False,
       entry_points={
           'console_scripts': [
-              'adsquery = adsquery.query:main'
+              'adsquery = adsquery.query:main [clipboard]'
           ]
       }
 )
