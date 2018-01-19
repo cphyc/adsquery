@@ -329,6 +329,12 @@ def downloadPaper(paper, config):
     :arg paper
         A `Paper` instance result given by the ads'''
 
+    def open_file(fname):
+        sh.Command(config['adsquery']['pdf_viewer'])(fname, _bg=True)
+
+    def process_output(line):
+        print(line, end='')
+
     if paper.pub == 'ArXiv e-prints':
         # Get the ArXiv name
         _id = paper.bibcode.split('arXiv')[1][:-1]
@@ -354,20 +360,18 @@ def downloadPaper(paper, config):
 
     if os.path.isfile(fname):
         ans = getInput('File already exists on disk. Overwrite [Y/n]?',
-                       lambda e: e.lower() if e.lower() in ['y', 'n']
+                       lambda e: e.lower() if e.lower() in ['y', 'n', '']
                        else None)
         if ans == 'n':
+            open_file(fname)
             return
-
-    def process_output(line):
-        print(line, end='')
 
     sh.wget(url,
             header="User-Agent: Mozilla/5.0 (Windows NT 5.1; rv:23.0) Gecko/20100101 Firefox/23.0",
             O=fname,
             _out=process_output)
     print('Downloaded into %s' % fname)
-    sh.Command(config['adsquery']['pdf_viewer'])(fname, _bg=True)
+    open_file(fname)
 
 
 
