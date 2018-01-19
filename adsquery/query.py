@@ -9,21 +9,25 @@ except NameError:  # python3
 # Local imports
 from .definitions import bcolors, journalAbbrevs
 
-# Imports
 import ads
 import argparse
-# from gooey import Gooey
 import re
-import requests
-from tqdm import tqdm
+import sh
 import os
+import configparser
+
+from appdirs import user_config_dir
 
 
-# import codecs
-# import sys
-
-# UTF8Writer = codecs.getwriter('utf8')
-# sys.stdout = UTF8Writer(sys.stdout)
+def getConfig():
+    config_file = os.path.join(user_config_dir('adsquery'), 'adsqueryrc')
+    config = configparser.ConfigParser()
+    config['adsquery'] = {
+        'data_dir': '~/ADS',
+        'pdf_viewer': 'evince'
+    }
+    config.read(config_file)
+    return config
 
 
 class BuildQuery:
@@ -210,7 +214,7 @@ def printResults(results):
                   c=bcolors, pub=pub))
 
 
-def doQuery(args, **kwargs):
+def doQuery(args, config, **kwargs):
     query = BuildQuery()
 
     query.setKey('sort', 'citation_count')
@@ -221,7 +225,8 @@ def doQuery(args, **kwargs):
         if key not in ['interactive', 'func']:
             query.setKey(key, kwargs[key])
 
-    fl = ['abstract', 'author', 'year', 'pub', 'title', 'bibcode']
+    fl = ['abstract', 'first_author', 'author', 'year', 'pub',
+          'title', 'bibcode']
     query.setKey('fl', fl)
 
     # get results
@@ -281,7 +286,7 @@ def doQuery(args, **kwargs):
             if 'd' in action:
                 for paper in papers:
                     print('Downloading "{}"'.format(paper.title[0]))
-                    downloadPaper(paper)
+                    downloadPaper(paper, config)
 
             # Get bibtex reference
             if 'b' in action:
@@ -316,17 +321,30 @@ def doQuery(args, **kwargs):
         return res_ar_array
 
 
-def downloadPaper(paper):
+def downloadPaper(paper, config):
     '''Download the paper.
+
+    Params
+    ------
     :arg paper
-    a result given by the ads'''
-    url = ("http://adsabs.harvard.edu/cgi-bin/nph-data_query?"
-           "bibcode={paper.bibcode}&link_type=ARTICLE".format(
-               paper=paper))
+        A `Paper` instance result given by the ads'''
+
+    if paper.pub == 'ArXiv e-prints':
+        # Get the ArXiv name
+        _id = paper.bibcode.split('arXiv')[1][:-1]
+        _id = _id[:4] + '.' + _id[4:]
+        url = 'https://arxiv.org/pdf/{id}'.format(id=_id)
+    else:
+        url = ("http://adsabs.harvard.edu/cgi-bin/nph-data_query?"
+               "bibcode={paper.bibcode}&link_type=ARTICLE".format(
+                   paper=paper))
+
+    print(f'Downloading {url}')
 
     fname = '{paper.bibcode}_{author}.pdf'.format(
         paper=paper,
         author=paper.first_author.split(',')[0])
+
     filesDir = os.path.join(os.path.expanduser('~'), 'ADS')
     # create the directory of not existing
     if not os.path.isdir(filesDir):
@@ -334,19 +352,23 @@ def downloadPaper(paper):
 
     fname = os.path.join(filesDir, fname)
 
-    if not os.path.isfile(fname):
-        r = requests.get(url, stream=True)
+    if os.path.isfile(fname):
+        ans = getInput('File already exists on disk. Overwrite [Y/n]?',
+                       lambda e: e.lower() if e.lower() in ['y', 'n']
+                       else None)
+        if ans == 'n':
+            return
 
-        with open(fname, 'wb') as f:
-            try:
-                total_length = int(r.headers.get('content-length'))
-            except:
-                total_length = -1
-            for chunk in tqdm(r.iter_content(chunk_size=1024),
-                              total=(total_length / 1024)):
-                if chunk:
-                    f.write(chunk)
-                    f.flush()
+    def process_output(line):
+        print(line, end='')
+
+    sh.wget(url,
+            header="User-Agent: Mozilla/5.0 (Windows NT 5.1; rv:23.0) Gecko/20100101 Firefox/23.0",
+            O=fname,
+            _out=process_output)
+    print('Downloaded into %s' % fname)
+    sh.Command(config['adsquery']['pdf_viewer'])(fname, _bg=True)
+
 
 
 def getInput(help_string, parse_fun):
@@ -355,7 +377,7 @@ def getInput(help_string, parse_fun):
         try:
             ret = input(help_string)
             ret_parsed = parse_fun(ret)
-            valid = True
+            valid = ret_parsed is not None
         except ValueError:
             valid = False
 
@@ -391,17 +413,15 @@ def parseAsList(string):
     return mask
 
 
-def doGet(args):
-    query = BuildQuery()
-    for key in vars(args):
-        query.setKey(key, vars(args)[key])
+def doGet(args, config):
+    raise NotImplementedError
 
-
-def doBib(args):
-    pass
+def doBib(args, config):
+    raise NotImplementedError
 
 
 def interactive():
+    config = getConfig()
     parser = argparse.ArgumentParser(description='Get papers from the ADS')
     parser.add_argument('--no-interactive', help='Deactivate interaction',
                         dest='interactive', action='store_false')
@@ -431,7 +451,7 @@ def interactive():
         args.q = ' '.join(args.q)
 
     try:
-        return args.func(args)
+        return args.func(args, config)
     except AttributeError:  # func not in namespace
         parser.print_help()
         return
