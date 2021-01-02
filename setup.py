@@ -18,7 +18,9 @@ setup(name='adsquery',
       install_requires=[
           'requests',
           'ads',
-          'tqdm'
+          'tqdm',
+          'sh',
+          'appdirs',
       ],
       extras_require={
           'clipboard': ['pyperclip']
